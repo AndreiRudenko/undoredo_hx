@@ -1,0 +1,5 @@
+-main Main.hx
+-cp ../
+
+# -js build/main.js
+-cpp build/
