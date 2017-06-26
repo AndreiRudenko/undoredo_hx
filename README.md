@@ -1,5 +1,5 @@
 ## undo/redo  
-Simple undo/redo for commands
+Simple undo/redo system
 
 ## example  
 See src/Main.hx
