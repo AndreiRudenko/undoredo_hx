@@ -13,7 +13,7 @@ class Command {
 	public var prev:Command;
 	
 
-	public function new(_cancel:Void->Void, _execute:Void->Void, _name:String = '') {
+	public function new(_execute:Void->Void, _cancel:Void->Void, _name:String = '') {
 
 		execute = _execute;
 		cancel = _cancel;

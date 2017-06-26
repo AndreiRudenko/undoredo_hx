@@ -12,15 +12,15 @@ class Main {
 
         var ur:UndoRedo = new UndoRedo(10);
 
-        var undo = function() {
-            trace('undo: $_name');
+        var execute = function() {
+            trace('execute');
         };
 
-        var redo = function() {
-            trace('redo: $_name');
+        var cancel = function() {
+            trace('cancel');
         };
 
-        ur.add(new Command(undo, redo, 'cmd name'));
+        ur.add(new Command(execute, cancel, 'cmd name'));
 
         trace(ur);
 

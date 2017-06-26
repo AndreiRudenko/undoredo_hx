@@ -5,127 +5,92 @@ class UndoRedo {
 
 
 	public var capacity(default, null):Int;
-	public var length(default, null):Int;
+	public var length(get, never):Int;
 
-	var head:Command;
-	var tail:Command;
-	var command:Command;
-
-	var undo_level:Int;
+	var undo_stack:Dll<Command>;
+	var redo_stack:Dll<Command>;
 
 
 	public function new(_capacity:Int) {
 
-		if(_capacity < 2) {
-			throw('capacity must be more than 1');
-		}
-
-		length = 0;
-		undo_level = 0;
 		capacity = _capacity;
+
+		undo_stack = new Dll();
+		redo_stack = new Dll();
 
 	}
 
 	public function add(cmd:Command) {
 
-		if(length < capacity) {
+		if(length >= capacity) {
+			undo_stack.rem_last();
+		}
 
-			if(undo_level == 0) {
-				command = tail;
-			} else {
-				tail = command;
+		undo_stack.add_first(cmd);
+		redo_stack.clear();
+		cmd.execute();
+
+	}
+
+	public function undo(_levels:Int = 1) {
+
+		for (_ in 0..._levels) {
+			if(undo_stack.length != 0) {
+				var cmd:Command = undo_stack.rem_first();
+				cmd.cancel();
+				redo_stack.add_first(cmd);
 			}
+		}
 
-			if (tail != null) {
-				tail.next = cmd;
-				cmd.prev = tail;
-			} else {
-				head = cmd;
+	}
+
+	public function redo(_levels:Int = 1) {
+
+		for (_ in 0..._levels) {
+			if(redo_stack.length != 0) {
+				var cmd:Command = redo_stack.rem_first();
+				cmd.execute();
+				undo_stack.add_first(cmd);
 			}
-
-			tail = cmd;
-			command = cmd;
-
-			length -= undo_level;
-			length++;
-			undo_level = 0;
-
-		} else {
-
-			head = head.next;
-
-			command.next = cmd;
-			cmd.prev = command;
-			tail = cmd;
-			command = cmd;
-
-		}
-		
-	}
-
-	public function undo() {
-
-		if(command == null && undo_level == 0) {
-			command = tail;
-		}
-
-		if(command != null) {
-			command.cancel();
-			command = command.prev;
-			undo_level++;
 		}
 
 	}
 
-	public function redo() {
+	public function clear() {
 
-		if(command != null) {
-			command = command.next;
-		} else if(undo_level == length) {
-			command = head;
-		}
-
-		if(command != null) {
-			command.execute();
-			undo_level--;
-		}
-
-	}
-
-	public function empty() {
-
-		length = 0;
-		undo_level = 0;
-
-		head = null;
-		tail = null;
-		command = null;
+		undo_stack.clear();
+		redo_stack.clear();
 
 	}
 
 	public function toString() {
 
+		var us = undo_stack.toArray();
+		var rs = redo_stack.toArray();
+
 		var str:String = '\n';
 
-		var i:Int = 0;
-		var node = head;
-		while(node != null) {
-			str += '$i: ${node.name}';
+		str += 'undo:\n';
 
-			if(node == command) {
-				str += ' <-';
-			}
+		for (i in 0...us.length) {
+			var n = us[i];
+			str += '$i: ${n.name}\n';
+		}
 
-			i++;
-			node = node.next;
+		str += 'redo:\n';
 
-			if(node != null) {
-				str += '\n';
-			}
-
+		for (i in 0...rs.length) {
+			var n = rs[i];
+			str += '$i: ${n.name}\n';
 		}
 
 		return str;
+		
+	}
+
+	inline function get_length():Int {
+
+		return undo_stack.length + redo_stack.length;
 		
 	}
 
